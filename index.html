@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neighborhood Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css" 
+      integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ==" 
+      crossorigin="">
+<script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js" 
+        integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ==" 
+        crossorigin=""></script>
+<style>
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+.highlighted-neighborhood {
+  stroke: #CC4529; /* Outline color */
+  stroke-width: 5; /* Outline width */
+  opacity: 1;
+  fill-opacity: 0.4;
+  fill: #CC4529; /* Fill color */
+}
+</style>
+</head>
+<body>
+<div id="map" style="width: 100%; height: 100%;"></div>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const toPoint = (s) => s.split(",").map(parseFloat);
+
+  const params = new URLSearchParams(location.search);
+  const center = params.get('center') || '0,0';
+  const initialZoom = params.get('zoom');
+  const zoom = parseInt(initialZoom || '2', 10);
+  const q = params.get('q');
+  const neighborhood = params.get('neighborhood'); // New: Capture the neighborhood parameter from URL
+  const markers = params.getAll('marker');
+  const map = L.map('map', { zoomControl: false, scrollWheelZoom: false, tap: false, dragging: false,doubleClickZoom:false,boxZoom:false}).setView(toPoint(center), zoom);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 20,
+    detectRetina: true
+  }).addTo(map);
+  fetch("https://raw.githubusercontent.com/ColeBoelterGIS/heirloom-url-map/main/Stillwater.geojson")
+  .then(response => response.json())
+  .then(data => {
+    L.geoJSON(data, {
+      style: function (feature) {
+        return {color: "#000000", fillOpacity: 0};
+      },
+      // Disable interactive behavior
+      interactive: false
+    }).addTo(map);
+  });
+  // Modified to highlight a neighborhood based on the URL parameter
+  fetch("https://raw.githubusercontent.com/ColeBoelterGIS/heirloom-url-map/main/ArchSurveyArea.geojson")
+    .then(response => response.json())
+    .then(data => {
+        L.geoJSON(data, {
+            style: function (feature) {
+                if (neighborhood && feature.properties.Area === neighborhood) {
+                    // Directly return style properties that Leaflet and SVG can interpret
+                    return {
+                    color: '#CC4529', // Outline color
+                    weight: 5, // Outline width
+                    opacity: 1,
+                    fillOpacity: 0.4,
+                    fillColor: '#CC4529' // Fill color, if needed
+                    };
+                } else {
+                    return {
+                    color: "#436AA1",
+                    fillOpacity: 0.1
+                    };
+                }
+            },
+
+      onEachFeature: function (feature, layer) {
+        // Attach a mouseover event to each feature
+        layer.on('mouseover', function () {
+          // Use the Long_Name property for the tooltip
+          const tooltipContent = feature.properties.Long_Name || 'Unnamed Area';
+          layer.bindTooltip(tooltipContent, {permanent: false, direction: "auto"});
+          layer.openTooltip();
+        });
+        // Optionally, bind a mouseout event to close the tooltip
+        layer.on('mouseout', function () {
+          layer.closeTooltip();
+        });
+      }
+    }).addTo(map);
+  });
+
+  // Update URL with neighborhood parameter
+  map.on('moveend zoomend', () => {
+    const newZoom = map.getZoom();
+    const center = map.getCenter();
+    const u = new URLSearchParams();
+    u.append('center', `${center.lat},${center.lng}`);
+    u.append('zoom', newZoom);
+    if (neighborhood) u.append('neighborhood', neighborhood); // Include neighborhood in URL update
+    history.replaceState(null, null, '?' + u.toString());
+  });
+
+  markers.forEach(s => {
+    L.marker(toPoint(s)).addTo(map);
+  });
+});
+</script>
+</body>
+</html>
