@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           layer.closeTooltip();
         });
         // Open a specific webpage when a neighborhood is clicked
-        layer.on('click', function () {
+        layer.on('dblclick', function () {
           // Redirect to a specific webpage for each area
           const area = feature.properties.Area;
             switch (area) {
