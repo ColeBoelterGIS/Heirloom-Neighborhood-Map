@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -109,46 +110,62 @@ document.addEventListener('DOMContentLoaded', async () => {
         layer.on('click', function () {
           // Redirect to a specific webpage for each area
           const area = feature.properties.Area;
-          switch (area) {
-            case "1":
-              window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/third-street-south-neighborhood";
-              break;
-            case "2":
-              window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/pine-street-west-neighborhood";
-            case "3":
-              window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/olive-and-pine-neighborhood";
-            case "4":
-              window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/sabins-addition";
-            case "5":
-              window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/wilkins-addition";
-            case "6":
-              window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/owens-street-north-neighborhood";
-            case "A":
-              window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/dutchtown-addition";
-            case "B":
-              window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/carli-and-schulenberg-addition";
-            case "C":
-              window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/staples-and-marys-addition";
-            case "D":
-              window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/north-hill";
-            case "E":
-              window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/greeley-addition";
-            case "F":
-              window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/south-hill";
-            case "G":
-              window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/holcombes-addition";
-            case "H":
-              window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/west-half";
-            case "I":
-              window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/east-half";
-            case "J":
-              window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/hersey-staples-addition";
+            switch (area) {
+           
+              case "1":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/third-street-south-neighborhood";
+                break;
+              case "2":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/pine-street-west-neighborhood";
+                break;
+              case "3":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/olive-and-pine-neighborhood";
+                break;
+              case "4":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/sabins-addition";
+                break;
+              case "5":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/wilkins-addition";
+                break;
+              case "6":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/owens-street-north-neighborhood";
+                break;
+              case "A":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/dutchtown-addition";
+                break;
+              case "B":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/carli-and-schulenberg-addition";
+                break;
+              case "C":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/staples-and-marys-addition";
+                break;
+              case "D":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/north-hill";
+                break;
+              case "E":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/greeley-addition";
+                break;
+              case "F":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/south-hill";
+                break;
+              case "G":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/holcombes-addition";
+                break;
+              case "H":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/west-half";
+                break;
+              case "I":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/east-half";
+                break;
+              case "J":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/hersey-staples-addition";
+                break;
+              default:
+                // Default behavior if the area is not specified
+                break;
+            }
 
-            
-            default:
-              // Default behavior if the area is not specified
-              break;
-          }
+   
         });
       }
     }).addTo(map);
