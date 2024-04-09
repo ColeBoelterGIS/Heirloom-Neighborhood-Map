@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const q = params.get('q');
   const neighborhood = params.get('neighborhood'); // New: Capture the neighborhood parameter from URL
   const markers = params.getAll('marker');
-  const map = L.map('map', { zoomControl: false, scrollWheelZoom: true, gestureHandling: true}).setView(toPoint(center), zoom);
+  const map = L.map('map', { zoomControl: false, scrollWheelZoom: true, gestureHandling: true,doubleClickZoom: false}).setView(toPoint(center), zoom);
 
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let contents = `
             <div class="content">
                 
-                <p>Simply hover over a neighborhood to see its name. <p>Want more details? Just double-click on any neighborhood to open its corresponding webpage!</p>
+                <p>Simply hover over or click on a neighborhood to see its name. <p>Want more details? Just double-click on any neighborhood to open its corresponding webpage!</p>
                 
             </div>`;
             L.control.slideMenu(left + contents).addTo(map);
