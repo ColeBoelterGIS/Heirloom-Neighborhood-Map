@@ -1,184 +1,234 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neighborhood Map</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css" integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ==" crossorigin="">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-gesture-handling/dist/leaflet-gesture-handling.min.css" />
-    <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js" integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ==" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet-gesture-handling"></script>
-    <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-        }
-        #header {
-            background-color: #465B79;
-            color: white;
-            text-align: center;
-            font-weight: bold;
-            font-family: Arial, sans-serif;
-            padding: 10px 0;
-            width: 100%;
-            position: absolute;
-            z-index: 1000;
-            top: 0;
-        }
-        .highlighted-neighborhood {
-            stroke: #CC4529;
-            stroke-width: 5;
-            opacity: 1;
-            fill-opacity: 0.4;
-            fill: #CC4529;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neighborhood Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css" 
+      integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ==" 
+      crossorigin="">
+<link rel="stylesheet" href="https://unpkg.com/leaflet-gesture-handling/dist/leaflet-gesture-handling.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"/>
+<link rel="stylesheet" href="dist/L.Control.SlideMenu.css" />
+<script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js" 
+        integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ==" 
+        crossorigin=""></script>
+<script src="https://unpkg.com/leaflet-gesture-handling"></script>
+<script src="dist/L.Control.SlideMenu.js"></script>
+<style>
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden; /* Hide overflow to prevent scrollbar */
+}
+#header {
+  background-color: #465B79; /* Background color */
+  color: white; /* Text color */
+  text-align: center; /* Center the text */
+  font-weight: bold; /* Bold text */
+  font-family: Arial, sans-serif; /* Arial, sans-serif font */
+  font-size: 20px; /* Increased font size to 20px */
+  padding: 10px 0; /* Padding for top and bottom */
+  width: 100%; /* Full width */
+  z-index: 1000; /* Ensure it stays on top */
+}
+#map {
+  width: 100%;
+  height: calc(100% - 40px); /* Adjust height to accommodate header */
+  border: none; /* Remove border */
+}
+.highlighted-neighborhood {
+  stroke: #CC4529; /* Outline color */
+  stroke-width: 5; /* Outline width */
+  opacity: 1;
+  fill-opacity: 0.4;
+  fill: #CC4529; /* Fill color */
+}
+
+/* Customize SlideMenu appearance */
+#slideMenu {
+  background-color: #fff; /* Background color */
+  border: 2px solid #465B79; /* Border color */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Box shadow */
+  width: 300px; /* SlideMenu width */
+  z-index: 1000; /* Ensure it stays on top */
+}
+.header {
+        font-size: 1.8rem;
+        color: #436AA1;
+        font-weight: bold; /* Bold text */
+        font-family: Arial, sans-serif; /* Arial, sans-serif font */
+      }
+.content {
+    margin: 0.25rem;
+    border-top: 1px solid #000;
+    padding-top: 0.5rem;
+    font-family: Arial, sans-serif; 
+    font-size: medium;
+      }
+</style>
 </head>
 <body>
-    <div id="header">Neighborhood Overview Map</div>
-    <div id="map" style="width: 100%; height: 100%;"></div>
-    <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const toPoint = (s) => s.split(",").map(parseFloat);
-            const params = new URLSearchParams(location.search);
-            const center = params.get('center') || '0,0';
-            const initialZoom = params.get('zoom');
-            const zoom = parseInt(initialZoom || '2', 10);
-            const q = params.get('q');
-            const neighborhood = params.get('neighborhood');
-            const markers = params.getAll('marker');
-            
-            const map = L.map('map', {
-                zoomControl: false,
-                scrollWheelZoom: true,
-                gestureHandling: true
-            }).setView(toPoint(center), zoom);
-            
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-                subdomains: 'abcd',
-                maxZoom: 20,
-                detectRetina: true
-            }).addTo(map);
-            
-            fetch("https://raw.githubusercontent.com/ColeBoelterGIS/heirloom-url-map/main/Stillwater.geojson")
-            .then(response => response.json())
-            .then(data => {
-                L.geoJSON(data, {
-                    style: function (feature) {
-                        return {
-                            color: "#000000",
-                            fillOpacity: 0
-                        };
-                    },
-                    interactive: false
-                }).addTo(map);
-            });
+<div id="header">Neighborhood Overview Map</div> 
+<div id="map"></div>
 
-            fetch("https://raw.githubusercontent.com/ColeBoelterGIS/heirloom-url-map/main/ArchSurveyArea.geojson")
-            .then(response => response.json())
-            .then(data => {
-                L.geoJSON(data, {
-                    style: function (feature) {
-                        if (neighborhood && feature.properties.Area === neighborhood) {
-                            return {
-                                color: '#CC4529',
-                                weight: 5,
-                                opacity: 1,
-                                fillOpacity: 0.4,
-                                fillColor: '#CC4529'
-                            };
-                        } else {
-                            return {
-                                color: "#436AA1",
-                                fillOpacity: 0.1
-                            };
-                        }
-                    },
-                    onEachFeature: function (feature, layer) {
-                        layer.on('mouseover', function () {
-                            const tooltipContent = feature.properties.Long_Name || 'Unnamed Area';
-                            layer.bindTooltip(tooltipContent, {permanent: false, direction: "auto"});
-                            layer.openTooltip();
-                        });
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const toPoint = (s) => s.split(",").map(parseFloat);
 
-                        layer.on('mouseout', function () {
-                            layer.closeTooltip();
-                        });
+  const params = new URLSearchParams(location.search);
+  const center = params.get('center') || '0,0';
+  const initialZoom = params.get('zoom');
+  const zoom = parseInt(initialZoom || '2', 10);
+  const q = params.get('q');
+  const neighborhood = params.get('neighborhood'); // New: Capture the neighborhood parameter from URL
+  const markers = params.getAll('marker');
+  const map = L.map('map', { zoomControl: false, scrollWheelZoom: true, gestureHandling: true}).setView(toPoint(center), zoom);
 
-                        layer.on('dblclick', function () {
-                            const area = feature.properties.Area;
-                            switch (area) {
-                                case "1":
-                                    window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/third-street-south-neighborhood";
-                                    break;
-                                case "2":
-                                    window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/pine-street-west-neighborhood";
-                                    break;
-                                case "3":
-                                    window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/olive-and-pine-neighborhood";
-                                    break;
-                                case "4":
-                                    window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/sabins-addition";
-                                    break;
-                                case "5":
-                                    window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/wilkins-addition";
-                                    break;
-                                case "6":
-                                    window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/owens-street-north-neighborhood";
-                                    break;
-                                case "A":
-                                    window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/dutchtown-addition";
-                                    break;
-                                case "B":
-                                    window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/carli-and-schulenberg-addition";
-                                    break;
-                                case "C":
-                                    window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/staples-and-marys-addition";
-                                    break;
-                                case "D":
-                                    window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/north-hill";
-                                    break;
-                                case "E":
-                                    window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/greeley-addition";
-                                    break;
-                                case "F":
-                                    window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/south-hill";
-                                    break;
-                                case "G":
-                                    window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/holcombes-addition";
-                                    break;
-                                case "H":
-                                    window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/west-half";
-                                    break;
-                                case "I":
-                                    window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/east-half";
-                                    break;
-                                case "J":
-                                    window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/hersey-staples-addition";
-                                    break;
-                                default:
-                                    break;
-                            }
-                        });
-                    }
-                }).addTo(map);
-            });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 20,
+    detectRetina: true
+  }).addTo(map);
 
-            map.on('moveend zoomend', () => {
-                const newZoom = map.getZoom();
-                const center = map.getCenter();
-                const u = new URLSearchParams();
-                u.append('center', `${center.lat},${center.lng}`);
-                u.append('zoom', newZoom);
-                if (neighborhood) u.append('neighborhood', neighborhood);
-                history.replaceState(null, null, '?' + u.toString());
-            });
+  // Initialize SlideMenu control
+  const left = '<div class="header">Information</div>';
+  let contents = `
+            <div class="content">
+                
+                <p>Simply hover over a neighborhood to see its name. <p>Want more details? Just double-click on any neighborhood to open its corresponding webpage!</p>
+                
+            </div>`;
+            L.control.slideMenu(left + contents).addTo(map);
 
-            markers.forEach(s => {
-                L.marker(toPoint(s)).addTo(map);
-            });
+
+  fetch("https://raw.githubusercontent.com/ColeBoelterGIS/heirloom-url-map/main/Stillwater.geojson")
+  .then(response => response.json())
+  .then(data => {
+    L.geoJSON(data, {
+      style: function (feature) {
+        return {color: "#000000", fillOpacity: 0};
+      },
+      // Disable interactive behavior
+      interactive: false
+    }).addTo(map);
+  });
+  // Modified to highlight a neighborhood based on the URL parameter
+  fetch("https://raw.githubusercontent.com/ColeBoelterGIS/heirloom-url-map/main/ArchSurveyArea.geojson")
+    .then(response => response.json())
+    .then(data => {
+        L.geoJSON(data, {
+            style: function (feature) {
+                if (neighborhood && feature.properties.Area === neighborhood) {
+                    // Directly return style properties that Leaflet and SVG can interpret
+                    return {
+                    color: '#CC4529', // Outline color
+                    weight: 5, // Outline width
+                    opacity: 1,
+                    fillOpacity: 0.4,
+                    fillColor: '#CC4529' // Fill color, if needed
+                    };
+                } else {
+                    return {
+                    color: "#436AA1",
+                    fillOpacity: 0.1
+                    };
+                }
+            },
+
+      onEachFeature: function (feature, layer) {
+        // Attach a mouseover event to each feature
+        layer.on('mouseover', function () {
+          // Use the Long_Name property for the tooltip
+          const tooltipContent = feature.properties.Long_Name || 'Unnamed Area';
+          layer.bindTooltip(tooltipContent, {permanent: false, direction: "auto"});
+          layer.openTooltip();
         });
-    </script>
+        // Optionally, bind a mouseout event to close the tooltip
+        layer.on('mouseout', function () {
+          layer.closeTooltip();
+        });
+        // Open a specific webpage when a neighborhood is clicked
+        layer.on('dblclick', function () {
+          // Redirect to a specific webpage for each area
+          const area = feature.properties.Area;
+            switch (area) {
+              
+                case "1":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/third-street-south-neighborhood";
+                break;
+              case "2":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/pine-street-west-neighborhood";
+                break;
+              case "3":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/olive-and-pine-neighborhood";
+                break;
+              case "4":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/sabins-addition";
+                break;
+              case "5":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/wilkins-addition";
+                break;
+              case "6":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/owens-street-north-neighborhood";
+                break;
+              case "A":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/dutchtown-addition";
+                break;
+              case "B":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/carli-and-schulenberg-addition";
+                break;
+              case "C":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/staples-and-marys-addition";
+                break;
+              case "D":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/north-hill";
+                break;
+              case "E":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/greeley-addition";
+                break;
+              case "F":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/south-hill";
+                break;
+              case "G":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/holcombes-addition";
+                break;
+              case "H":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/west-half";
+                break;
+              case "I":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/east-half";
+                break;
+              case "J":
+                window.parent.location.href = "https://hpc-stillwatermn.hub.arcgis.com/pages/hersey-staples-addition";
+                break;
+              default:
+                // Default behavior if the area is not specified
+                break;
+            }
+
+        });
+      }
+    }).addTo(map);
+  });
+
+  // Update URL with neighborhood parameter
+  map.on('moveend zoomend', () => {
+    const newZoom = map.getZoom();
+    const center = map.getCenter();
+    const u = new URLSearchParams();
+    u.append('center', `${center.lat},${center.lng}`);
+    u.append('zoom', newZoom);
+    if (neighborhood) u.append('neighborhood', neighborhood); // Include neighborhood in URL update
+    history.replaceState(null, null, '?' + u.toString());
+  });
+
+  markers.forEach(s => {
+    L.marker(toPoint(s)).addTo(map);
+  });
+});
+
+</script>
 </body>
 </html>
